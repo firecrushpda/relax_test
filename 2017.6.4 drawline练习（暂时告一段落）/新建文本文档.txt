@@ -1,0 +1,12 @@
+控制图片的fillamount先要改变图片的sprite
+只有sprite是提供set方法的
+然后还要设置图片的 Image.Type.Filled;
+只有filled类型才能改变image的fillamount
+
+想要改变图片的锚点必须获取图片recttransform
+直接调rect是不会让你改动的
+只有在rect下点出要改的才能改动
+
+Pivot点到Anchor点的距离是始终不变的 (Anchor是点模式)
+Unity会保证红框的左下角到锚框的左下角距离不变，同时红框的右上角到锚框的右上角距离不变
+anchoredPosition就是表示锚点到Pivot的位置(Anchor是点模式)

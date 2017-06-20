@@ -1,0 +1,43 @@
+方法的状态被存储了，这使得方法中定义的这些变量都会保存它们的值，即使是在不同的帧中。
+
+一个协程的执行可以在任何地方用yield语句来暂停，yield return的值决定了什么时候协程恢复执行。
+协程在协调在几帧中执行的操作时有极大的用处.协程几乎没有任何性能开销。
+StartCoroutine一般都会立即返回，然而你也可以获得返回结果的值。
+但是这一步会等到协程结束执行才能生效。
+
+当被调用函数执行到yield return null；（暂停协程，等待下一帧继续执行）时，根据Unity解释协同程序就会被暂停，
+其实我个人认为他这个解释不够精确，先返回开始协程的地方，然后再暂停协程。
+也就是先通知调用处，“你先走吧，不用管我”，然后再暂停协程。
+
+A coroutine is like a function that has the ability to pause execution and return control to Unity but then to continue where it left off on the following frame.
+
+协程一个很重要的内容是，它可以让普通的程序（比方说一个计时器）很容易地被抽象化并且被复用。
+
+我们yield的时候总是用0（或者null），仅仅告诉程序在继续执行前等待下一帧。
+
+    IEnumerator SaySomeThings()  
+    {  
+        Debug.Log("The routine has started");  
+        Yield return StartCoroutine(Wait(1.0f));  
+        Debug.Log("1 second has passed since the last message");  
+        Yield return StartCoroutine(Wait(2.5f));  
+        Debug.Log("2.5 seconds have passed since the last message");  
+    }  
+   
+    //Our wait function  
+    IEnumerator Wait(float duration)  
+    {  
+        for(float timer = 0; timer < duration; timer += Time.deltaTime)  
+            Yield return 0;  
+    }  
+
+在使用协程时要特别注意它们的调用时机。 
+C#编译器会帮我们创建一个协程的类，而在开启一个协程时就会创建对应的对象，这个对象用来维护多次调用时协程的状态。
+正是要维护这些状态，所以协程内的本地变量也需要放到堆上，启动一个Coroutine所引起的内存消耗等同于一个类的固定成本加上这个 Coroutine所用到的局部变量总内存。
+而协程的生命周期就是跟着MonoBehaviour来走的。
+
+需要注意的是：
+为了减少主线程的CPU开销，需要避免在协程内进行一些阻塞的操作
+在协程内分配的资源要在协程结束以后才会释放，所以不要在协程内循环分配资源
+尽可能使用最少的协程数去完成最多的操作
+使用巢状式的协程有助于保持代码简洁且易于维护，但它们也比较容易导致较高的内存开销

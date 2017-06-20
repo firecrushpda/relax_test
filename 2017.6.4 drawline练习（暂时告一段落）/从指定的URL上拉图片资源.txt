@@ -1,0 +1,27 @@
+using UnityEngine;  
+using System.Collections;  
+using UnityEngine.UI;  
+    
+public class Test : MonoBehaviour {  
+    
+    [SerializeField]  
+    Image myImage;  
+    
+    // Use this for initialization  
+    void Start () {  
+        StartCoroutine(GetImage());  
+    }  
+    
+    IEnumerator GetImage()  
+    {  
+        string url = "http://www.5dbb.com/images/logo.gif";  
+        WWW www = new WWW(url);  
+        yield return www;  
+        if (string.IsNullOrEmpty(www.error))  
+        {  
+            Texture2D tex = www.texture;  
+            Sprite temp = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0, 0));  
+            myImage.sprite = temp;  
+        }  
+    }  
+}  

@@ -1,0 +1,6 @@
+VertexHelper
+A utility class that can aid in the generation of meshes for the UI.
+This class implements IDisposable to aid with memory management.
+
+protected void OnPopulateMesh(UI.VertexHelper vh);
+说的是当该控件（例如Text,Image,RawImage）需要改变顶点的时候，就会自动调用。

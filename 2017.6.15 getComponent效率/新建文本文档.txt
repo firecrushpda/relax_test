@@ -1,0 +1,6 @@
+频繁的调用GeComponent方法会造成CPU的开销，但是对GC几乎没有影响。
+Profiler不要用来分析Editor中运行的项目，由于一些引擎内部的检查会导致结果出现较大偏差。
+5.X版本中GeComponent<>的性能最好。
+使用属性访问器来访问一些内建的属性例如transform的性能已经可以让人接受了，并不一定非要缓存这些属性。
+5.X版本删掉了很多属性访问器，基本上只保留了gameObject和transform。
+最后需要说明的是，上述的测试发生在5.X版本的Unity中。如果使用4.x版本可能会有些许不同，例如在4.X版本中，GetComponent(typeof)的性能可能要好于GetComponent<>，而且能够直接使用的属性访问器也更多，各位可以自己进行测试。

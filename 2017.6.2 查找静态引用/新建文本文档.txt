@@ -1,0 +1,25 @@
+FieldInfo是反射应用中的类，它表示某个对象公共字段的信息。
+Type.GetField(string name)的返回类型为FieldInfo。
+
+
+.NET 3.5在System.Collections.Generic命名空间中包含一个新的集合类：HashSet<T>
+这个集合类包含不重复项的无序列表。这种集合称为“集(set)”。
+集是一个保留字，所以该类有另一个名称HashSet<T>。
+这个名称很容易理解，因为这个集合基于散列值，插入元素的操作非常快，不需要像List<T>类那样重排集合。
+
+ BindingFlags 筛选标志可用于定义包含在搜索中的成员
+
+1.反射dll
+
+2.遍历所有的.cs 取出所有带static的属性。
+
+3.对static下的所有属性以及子属性进行深度遍历，最终即可得出来被静态引用的资源。
+
+wenti:
+1.这个脚本查不出lua里的静态引用。lua可以遍历G里的所有table表，和上面执行类型的操作就可以查出来。
+
+2.如果想定向查询，比如专门查某一个资源在内存中哪里被引用，也和上面算法差不多改改就可以。
+
+3.Unity在Editor下的Profiler其实是非常不准确的，
+因为自己在Project视图中选择一些资源unity也会记录在Profiler中，并且没办法完全清除。
+如果想测试内存，可以打一个pc包在连上Profiler在看即可

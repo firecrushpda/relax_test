@@ -1,0 +1,505 @@
+using System;
+
+using System.IO;
+
+using UnityEditor;
+
+using UnityEngine;
+
+using ModelAction = ZWWXModel.Action;
+
+using System.Runtime.Serialization.Formatters.Binary;
+
+using System.Collections;
+
+using System.Reflection;
+
+using ZWWXModel;
+
+using System.Collections.Generic;
+
+
+
+public class DeserializeAssetBundle:Editor {
+
+    private static WWW www = null;
+
+    private static UnityEngine.Object asset = null;
+
+    private static string assetType = string.Empty;
+
+
+
+    #region MenuItem
+
+    [MenuItem("Assets/Deserialize AssetBundle/Deserialize", true, -100)]
+
+    static public bool DeserializeOnCheck() {
+
+        List<string> exts = new List<string> { "item", "role", "audio", "action", "model" };
+
+        string path = AssetDatabase.GetAssetPath(Selection.activeObject);
+
+
+
+        return exts.Contains(GetAssetType(path)) && File.Exists(path);
+
+    }
+
+
+
+    [MenuItem("Assets/Deserialize AssetBundle/Deserialize", false, -100)]
+
+    static void Deserialize() {
+
+        EditorApplication.update += OnUpdate;
+
+        string path = AssetDatabase.GetAssetPath(Selection.activeObject);
+
+        assetType = GetAssetType(path);
+
+
+
+        path = "file:///" + Application.dataPath.Replace("Assets", "") + path;
+
+        www = new WWW(path);
+
+    }
+
+
+
+    [MenuItem("Assets/Deserialize AssetBundle/Serialize", true, -100)]
+
+    static public bool SerializeOnCheck() {
+
+        string path = AssetDatabase.GetAssetPath(Selection.activeObject);
+
+        return path.EndsWith(".asset") && File.Exists(path);
+
+    }
+
+
+
+    [MenuItem("Assets/Deserialize AssetBundle/Serialize", false, -100)]
+
+    static void Serialize() {
+
+        string directory = Application.dataPath + "/DeserializeAssetBundle/Serialize/";
+
+        if (!Directory.Exists(directory))
+
+            Directory.CreateDirectory(directory);
+
+
+
+        foreach (UnityEngine.Object asset in Selection.objects) {
+
+            string filePath = directory + asset.name + GetAssetExt(asset.GetType());
+
+            BuildPipeline.BuildAssetBundle(asset, null, filePath,
+
+                BuildAssetBundleOptions.CollectDependencies |
+
+                BuildAssetBundleOptions.UncompressedAssetBundle,
+
+                EditorUserBuildSettings.activeBuildTarget);
+
+            AssetDatabase.Refresh();
+
+        }
+
+    }
+
+
+
+    private static string GetAssetExt(System.Type assetType) {
+
+        string ext = string.Empty;
+
+
+
+        if (assetType.Equals(typeof(Material))) {
+
+            ext = "material";
+
+        }
+
+        if (assetType == typeof(Action)) {
+
+            ext = "action";
+
+        }
+
+        if (assetType == typeof(Role)) {
+
+            ext = "role";
+
+        }
+
+        if (assetType == typeof(Equip)) {
+
+            ext = "item";
+
+        }
+
+        if (assetType == typeof(Clip)) {
+
+            ext = "animation";
+
+        }
+
+        if (assetType.Equals(typeof(Mesh))) {
+
+            ext = "mesh";
+
+        }
+
+        if (assetType == typeof(Texture)) {
+
+            ext = "tex";
+
+        }
+
+        if (assetType == typeof(Texture2D)) {
+
+            ext = "tex";
+
+        }
+
+        if (assetType == typeof(MeshToBoneMapping)) {
+
+            ext = "m2b";
+
+        }
+
+        if (assetType == typeof(GameObject)) {
+
+            ext = "bone";
+
+        }
+
+
+
+        return "."+ext;
+
+    }
+
+    #endregion
+
+
+
+
+
+    #region Excute
+
+    static void Excute() {
+
+        if (assetType == "action")
+
+            Deserialize<ModelAction.Action>(asset as ModelAction.Action);
+
+        else if (assetType == "item")
+
+            Deserialize<Equip>(asset as Equip);
+
+        else if (assetType == "role")
+
+            Deserialize<Role>(asset as Role);
+
+        else if (assetType == "audio")
+
+            Deserialize<AudioClip>(asset as AudioClip);
+
+        else if (assetType == "GameObject")
+
+            Deserialize<GameObject>(asset as GameObject);
+
+    }
+
+
+
+    static string GetAssetType(string path) {
+
+        if (path.EndsWith("action"))
+
+            return "action";
+
+        else if (path.EndsWith("role"))
+
+            return "role";
+
+        else if (path.EndsWith("item"))
+
+            return "item";
+
+        else if (path.EndsWith("audio"))
+
+            return "audio";
+
+        else if (path.EndsWith("model"))
+
+            return "model";
+
+
+
+        return "GameObject";
+
+    }
+
+
+
+    static void OnUpdate() {
+
+        if (www != null) {
+
+            try {
+
+                if (!string.IsNullOrEmpty(www.error)) {
+
+                    Debug.LogError(www.error);
+
+                    www.Dispose();
+
+                    www = null;
+
+                    assetType = string.Empty;
+
+                    EditorApplication.update -= OnUpdate;
+
+                    return;
+
+                }
+
+
+
+                if (www.assetBundle != null) {
+
+                    asset = UnityEngine.Object.Instantiate(www.assetBundle.mainAsset);
+
+                    asset.name = asset.name.Replace("(Clone)", "");
+
+                    www.assetBundle.Unload(false);
+
+                    www.Dispose();
+
+                    www = null;
+
+                    Excute();
+
+                    assetType = string.Empty;
+
+                    EditorApplication.update -= OnUpdate;
+
+                }
+
+            } catch (Exception ex){
+
+                Debug.LogError(ex.Message + ex.StackTrace);
+
+                if (www != null) {
+
+                    if (www.assetBundle != null)
+
+                        www.assetBundle.Unload(false);
+
+                    www.Dispose();
+
+                    www = null;
+
+                }
+
+                assetType = string.Empty;
+
+                UnityEngine.Object.DestroyImmediate(asset);
+
+                EditorApplication.update -= OnUpdate;
+
+            }
+
+        }
+
+    }
+
+
+
+    static void Deserialize<T>(T asset) where T : UnityEngine.Object {
+
+        T obj = Create<T>(asset);
+
+        if (obj != null) {
+
+            EditorUtility.SetDirty(obj);
+
+            Selection.activeObject = obj;
+
+            EditorGUIUtility.PingObject(Selection.activeObject);
+
+            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+
+        }
+
+    }
+
+
+
+    static T Create<T>(T asset) where T : UnityEngine.Object {
+
+        string assetName = asset.name;
+
+        string assetPath = "Assets/DeserializeAssetBundle";
+
+        if (!Directory.Exists(assetPath))
+
+            Directory.CreateDirectory(assetPath);
+
+
+
+        bool doCreate = true;
+
+        string path = Path.Combine(assetPath, assetName + "_Deserialize.asset");
+
+        FileInfo fileInfo = new FileInfo(path);
+
+        if (fileInfo.Exists) {
+
+            doCreate = EditorUtility.DisplayDialog(assetName + " already exists.",
+
+                                                    "Do you want to overwrite the old one?",
+
+                                                    "Yes", "No");
+
+        }
+
+
+
+        T obj = null;
+
+        if (doCreate) {
+
+            obj = CreateAsset<T>(assetPath, asset);
+
+        }
+
+
+
+        return obj;
+
+    }
+
+
+
+    static T CreateAsset<T>(string _path, T asset) where T : UnityEngine.Object {
+
+        if (new DirectoryInfo(_path).Exists == false) {
+
+            Debug.LogError("can't create asset, path not found");
+
+            return null;
+
+        }
+
+        if (string.IsNullOrEmpty(asset.name)) {
+
+            Debug.LogError("can't create asset, the name is empty");
+
+            return null;
+
+        }
+
+        string assetPath = Path.Combine(_path, asset.name + "_Deserialize.asset");
+
+
+
+        UnityEngine.Object obj = asset;
+
+        if (obj is GameObject)
+
+            PrefabUtility.InstantiatePrefab(obj);
+
+        else {
+
+            UnityEngine.Object temp = ScriptableObject.CreateInstance(asset.GetType());
+
+            temp = Clone(asset, temp);
+
+            obj = temp;
+
+
+
+            AssetDatabase.CreateAsset(obj, assetPath);
+
+        }
+
+        return (T)obj;
+
+    }
+
+
+
+    static SerializedProperty Get(UnityEngine.Object asset, string property) {
+
+        SerializedObject m_Property = new SerializedObject(asset);
+
+        SerializedProperty temp = null;
+
+        string[] propertys = property.Split(new char[] { '.' });
+
+        for (int i = 0; i < propertys.Length; i++) {
+
+            if (i == 0)
+
+                temp = m_Property.FindProperty(propertys);
+
+            else
+
+                temp = temp.FindPropertyRelative(propertys);
+
+        }
+
+
+
+        return temp;
+
+    }
+
+
+
+    static UnityEngine.Object Clone(UnityEngine.Object source_asset, UnityEngine.Object target_asset) {
+
+        SerializedObject source = new SerializedObject(source_asset);
+
+        SerializedObject target = new SerializedObject(target_asset);
+
+        
+
+        FieldInfo[] fieldInfos = source_asset.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+        foreach (FieldInfo fieldInfo in fieldInfos) {
+
+            SerializedProperty temp = Get(source_asset, fieldInfo.Name);
+
+            if (temp == null)
+
+                continue;
+
+            SerializedProperty property = Get(source_asset, fieldInfo.Name).Copy();
+
+            if (property == null)
+
+                continue;
+
+            target.CopyFromSerializedProperty(property);
+
+        }
+
+        target.ApplyModifiedProperties();
+
+        return target.targetObject;
+
+    }
+
+    #endregion
+
+
+
+}
