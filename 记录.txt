@@ -1,0 +1,53 @@
+人物生成流程
+battlescene:awake:InitSceneInfo -> BattleMgr.InitSceneInfo -> BattleMgr.LoadScene ->BattleDataMgr.LoadScene ->BattleDataMgr.report:LoadScene ->
+
+WholeReportInfo:LoadScene ->HeadBaseInfo:LoadScene -> SceneObject:LoadScene ->BattleMgr.OnSceneLoaded ->BattleMgr.InitHero ->BattleDataMgr.CreateHeroObj
+
+->BattleDataMgr.report(WholeReportInfo):LoadHeros ->HeadBaseInfo:LoadHeros
+
+缓存目录
+application.persistentDataPath 或者application.temporaryCachePath
+
+BattleDataMgr.report.headInfo.isReverse
+
+"assets/gamedemo/models/role/girl/girl001_cloth_skin.prefab"
+
+attrDiffInfo.diff_hp
+
+lua_gettop(L) 可以返回函数收到的参数个数
+
+shift + space 全屏鼠标悬停的窗口
+
+ctl + alt + 数字键选定inspector的几项 shift + alt + 数字键还原选择
+
+Substance Painter
+
+uibuilder
+
+Mobile Touch Camera
+
+Vectrosity
+
+Odin - Inspector and Serializer
+
+post processing
+
+法线值域有正负所以走一步normalize
+
+saturate饱和化 使值域变为0到1
+
+roystanross
+
+Platformer Corgi Engine
+
+Mega Grab
+
+Prefab Painter
+
+Geometry Jump - Complete hopper Game Template Ready For Release 
+
+Stain System
+
+mimu studio
+
+Ami Bikini & School Uniform
